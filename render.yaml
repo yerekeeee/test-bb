@@ -1,15 +1,13 @@
-# databases — это отдельный раздел верхнего уровня для баз данных
 databases:
   - name: beautybook-db
     databaseName: beautybook
     user: beautybook_user
 
 services:
-  # Redis также является сервисом
   - type: redis
     name: beautybook-redis
+    ipAllowList: [] # <--- ДОБАВЬТЕ ЭТУ СТРОКУ
   
-  # Веб-сервис, который запускает ваш код
   - type: web
     name: beautybook-web
     env: python
@@ -17,10 +15,9 @@ services:
     startCommand: "daphne -b 0.0.0.0 -p $PORT beautybook.asgi:application"
     envVars:
       - key: PYTHON_VERSION
-        value: 3.12.3 # Убедитесь, что это ваша версия Python
+        value: 3.11.4
       - key: SECRET_KEY
         generateValue: true
-      # Передаем URL базы данных и Redis в наше приложение
       - key: DATABASE_URL
         fromDatabase:
           name: beautybook-db

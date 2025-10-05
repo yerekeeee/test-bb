@@ -1,5 +1,15 @@
+# databases — это отдельный раздел верхнего уровня для баз данных
+databases:
+  - name: beautybook-db
+    databaseName: beautybook
+    user: beautybook_user
+
 services:
-  # 1. Веб-сервис (Daphne для Django)
+  # Redis также является сервисом
+  - type: redis
+    name: beautybook-redis
+  
+  # Веб-сервис, который запускает ваш код
   - type: web
     name: beautybook-web
     env: python
@@ -10,15 +20,13 @@ services:
         value: 3.12.3 # Убедитесь, что это ваша версия Python
       - key: SECRET_KEY
         generateValue: true
-      - key: WEB_CONCURRENCY
-        value: 4
-
-  # 2. База данных PostgreSQL
-  - type: psql # <--- ЭТО ПРАВИЛЬНОЕ ЗНАЧЕНИЕ
-    name: beautybook-db
-    ipAllowList: []
-
-  # 3. Сервис Redis
-  - type: redis
-    name: beautybook-redis
-    ipAllowList: []
+      # Передаем URL базы данных и Redis в наше приложение
+      - key: DATABASE_URL
+        fromDatabase:
+          name: beautybook-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: beautybook-redis
+          property: connectionString

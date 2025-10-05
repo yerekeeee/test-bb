@@ -7,16 +7,16 @@ services:
     startCommand: "daphne -b 0.0.0.0 -p $PORT beautybook.asgi:application"
     envVars:
       - key: PYTHON_VERSION
-        value: 3.13.2 # Укажите вашу версию Python
+        value: 3.12.3 # Убедитесь, что это ваша версия Python
       - key: SECRET_KEY
-        generateValue: true # Render сгенерирует секретный ключ
+        generateValue: true
       - key: WEB_CONCURRENCY
         value: 4
 
   # 2. База данных PostgreSQL
-  - type: postgres
+  - type: psql # <--- ЭТО ПРАВИЛЬНОЕ ЗНАЧЕНИЕ
     name: beautybook-db
-    ipAllowList: [] # Разрешить доступ со всех IP-адресов внутри Render
+    ipAllowList: []
 
   # 3. Сервис Redis
   - type: redis

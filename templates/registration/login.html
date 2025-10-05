@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% load django_bootstrap5 %}
+{% load static %}
+
+{% block title %}Вход - BeautyBook{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center py-5">
+    <div class="col-md-6 col-lg-5 col-xl-4">
+        <div class="card shadow-sm">
+            <div class="card-body p-4 p-md-5">
+                <div class="text-center mb-4">
+                    <h2 class="card-title">Вход в аккаунт</h2>
+                </div>
+
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    {% bootstrap_form form %}
+
+                    <div class="text-end mt-2">
+                        <a href="{% url 'password_reset' %}">Забыли пароль?</a>
+                    </div>
+
+                    <div class="d-grid mt-3">
+                        <button type="submit" class="btn btn-primary btn-lg">Войти</button>
+                    </div>
+                </form>
+
+                <hr class="my-4">
+                <div class="text-center">
+                    <p class="mb-0 text-muted">Нет аккаунта? <a href="{% url 'users:signup' %}">Зарегистрироваться</a></p>
+                    <p class="mb-0 mt-2"><a href="{% url 'staff_login' %}">Войти как сотрудник</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://unpkg.com/imask"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const phoneInput = document.getElementById('phone-mask-login');
+    if (phoneInput) { const mask = IMask(phoneInput, { mask: '+{7} (000) 000-00-00' }); }
+});
+</script>
+{% endblock %}

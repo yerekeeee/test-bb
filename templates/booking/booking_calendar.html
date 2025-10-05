@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+{% load django_bootstrap5 %}
+
+{% block title %}Календарь записи - BeautyBook{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="text-center mb-4">
+        <h1 class="display-6">Запись к {{ master.get_full_name }}</h1>
+        <p class="lead text-muted">на услугу «{{ service.name }}»</p>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <h5 class="card-title">1. Выберите дату</h5>
+            <input type="date" id="date-picker" class="form-control mb-4">
+
+            <h5 class="card-title">2. Выберите доступное время</h5>
+            <div id="time-slots" class="d-flex flex-wrap gap-2">
+                <p class="text-muted">Пожалуйста, выберите дату, чтобы увидеть свободные слоты.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="text-center mt-4">
+        <a href="{% url 'booking:master_list' service.id %}" class="btn btn-secondary">‹ Назад к выбору мастера</a>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const datePicker = document.getElementById('date-picker');
+    const timeSlotsContainer = document.getElementById('time-slots');
+    const masterId = {{ master.id }};
+    const serviceId = {{ service.id }};
+    const csrfToken = '{{ csrf_token }}';
+
+    datePicker.min = new Date().toISOString().split("T")[0];
+
+    datePicker.addEventListener('change', async function() {
+        const selectedDate = this.value;
+        if (!selectedDate) return;
+
+        timeSlotsContainer.innerHTML = '<div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div>';
+
+        const response = await fetch(`/booking/api/available_slots/${masterId}/?date=${selectedDate}`);
+        const data = await response.json();
+        renderTimeSlots(selectedDate, data.booked_slots);
+    });
+
+    function renderTimeSlots(date, bookedSlots) {
+        timeSlotsContainer.innerHTML = '';
+        const startHour = 10;
+        const endHour = 22;
+        let hasSlots = false;
+
+        for (let hour = startHour; hour < endHour; hour++) {
+            for (let minute of [0, 30]) {
+                if (hour === 21 && minute === 30) continue;
+
+                const timeStr = `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
+                const slotDateTime = `${date}T${timeStr}`;
+                const isBooked = bookedSlots.includes(timeStr);
+
+                const button = document.createElement('button');
+                button.className = 'btn';
+                button.innerText = timeStr;
+                button.dataset.slot = slotDateTime;
+
+                if (isBooked) {
+                    button.classList.add('btn-outline-danger');
+                    button.disabled = true;
+                } else {
+                    button.classList.add('btn-outline-success');
+                    button.addEventListener('click', bookAppointment);
+                }
+                timeSlotsContainer.appendChild(button);
+                hasSlots = true;
+            }
+        }
+
+        if (!hasSlots) {
+            timeSlotsContainer.innerHTML = '<p class="text-muted">На выбранную дату нет свободных слотов.</p>';
+        }
+    }
+
+    async function bookAppointment(event) {
+        const slot = event.target.dataset.slot;
+        const formattedTime = new Date(slot).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+
+        if (!confirm(`Подтверждаете запись на ${formattedTime}?`)) {
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('service_id', serviceId);
+        formData.append('master_id', masterId);
+        formData.append('slot', slot);
+
+        const response = await fetch('/booking/api/create_appointment/', {
+            method: 'POST',
+            headers: { 'X-CSRFToken': csrfToken },
+            body: formData,
+        });
+
+        const result = await response.json();
+        if (result.status === 'success') {
+            alert('Вы успешно записаны! Информация о записи появится в вашем личном кабинете.');
+            datePicker.dispatchEvent(new Event('change'));
+        } else {
+            alert('Произошла ошибка. Пожалуйста, попробуйте еще раз.');
+        }
+    }
+});
+</script>
+{% endblock %}

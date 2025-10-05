@@ -1,0 +1,140 @@
+{% extends 'base.html' %}
+{% load django_bootstrap5 %}
+
+{% block title %}Личный кабинет - BeautyBook{% endblock %}
+
+{% block content %}
+<style>
+    .profile-card {
+        position: sticky; /* Делаем карточку профиля "липкой" на больших экранах */
+        top: 100px;
+    }
+
+    .appointment-card {
+        display: flex;
+        border: 1px solid var(--bs-border-color);
+        border-radius: var(--bs-border-radius);
+        margin-bottom: 1.5rem;
+        background-color: var(--bs-light);
+        transition: all 0.2s ease-in-out;
+        box-shadow: var(--bs-box-shadow-sm);
+    }
+    .appointment-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+    }
+
+    .appointment-date {
+        flex: 0 0 90px;
+        text-align: center;
+        padding: 1rem;
+        border-right: 1px solid var(--bs-border-color);
+        font-weight: 600;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+    .appointment-date .day {
+        font-size: 2rem;
+        line-height: 1;
+        color: var(--bs-primary);
+    }
+    .appointment-date .month {
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        color: var(--bs-muted-text);
+    }
+
+    .appointment-details {
+        flex-grow: 1;
+        padding: 1rem;
+    }
+
+    .appointment-services ul {
+        list-style-type: none;
+        padding-left: 0;
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+    }
+
+    .appointment-master {
+        font-weight: 600;
+    }
+
+    .appointment-actions {
+        padding: 1rem;
+        text-align: right;
+        min-width: 150px;
+    }
+</style>
+
+<div class="container py-5">
+    <div class="row g-4 g-lg-5">
+        <div class="col-lg-4">
+            <div class="card profile-card">
+                <div class="card-body text-center p-4">
+                    <h3 class="card-title">{{ user.get_full_name|default:user.username }}</h4>
+                    <p class="text-muted">@{{ user.username }}</p>
+                </div>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item"><i class="bi bi-envelope-fill me-2 text-muted"></i>{{ user.email }}</li>
+                    <li class="list-group-item"><i class="bi bi-telephone-fill me-2 text-muted"></i>{{ user.phone_number|default:"Не указан" }}</li>
+                </ul>
+                <div class="card-body">
+                    <div class="d-grid">
+                        <a href="{% url 'booking:service_selection' %}" class="btn btn-primary">
+                            <i class="bi bi-plus-circle me-1"></i> Новая запись
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            <h1 class="h2 fw-bold mb-4">Мои записи</h1>
+
+            {% if appointments %}
+                {% for app in appointments %}
+                <div class="appointment-card">
+                    <div class="appointment-date">
+                        <span class="day">{{ app.start_time|date:"d" }}</span>
+                        <span class="month">{{ app.start_time|date:"M" }}</span>
+                    </div>
+
+                    <div class="appointment-details">
+                        <div class="appointment-master">{{ app.master.user.get_full_name }}</div>
+                        <div class="text-muted small">{{ app.start_time|date:"H:i" }}</div>
+                        <div class="appointment-services mt-2">
+                            <ul>
+                            {% for service in app.services.all %}
+                                <li>- {{ service.name }}</li>
+                            {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="appointment-actions d-flex flex-column justify-content-center">
+                        {% if app.start_time < now %}
+                            {% if app.review %}
+                                <span class="badge bg-light text-success border border-success mb-2">Отзыв оставлен</span>
+                            {% else %}
+                                <a href="{% url 'booking:add_review' app.id %}" class="btn btn-primary btn-sm mb-2">Оставить отзыв</a>
+                            {% endif %}
+                            <a href="{% url 'booking:calendar' app.master.id %}?{% for service in app.services.all %}services={{ service.id }}{% if not forloop.last %}&{% endif %}{% endfor %}" class="btn btn-outline-secondary btn-sm">
+                                Записаться снова
+                            </a>
+                        {% else %}
+                            <span class="badge bg-info">Предстоит</span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="text-center p-5 border rounded-3">
+                    <p class="lead text-muted">У вас еще нет записей.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

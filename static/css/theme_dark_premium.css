@@ -1,0 +1,99 @@
+/* static/css/theme_dark_premium.css */
+
+/* 1. Определяем новую премиальную палитру и шрифт */
+:root {
+    --bs-primary: #e94560; /* Яркий акцентный розовый */
+    --bs-primary-rgb: 233, 69, 96;
+    --bs-dark-blue: #1a1a2e; /* Глубокий темно-синий */
+    --bs-dark-blue-light: #2a2a4a; /* Чуть светлее для карточек */
+    --bs-light-text: #e0e0e0; /* Светлый текст */
+    --bs-muted-text: #8c8c9e; /* Приглушенный текст */
+    --bs-border-color: rgba(255, 255, 255, 0.1);
+
+    --bs-font-sans-serif: 'Manrope', sans-serif; /* Новый стильный шрифт */
+    --bs-border-radius: 0.75rem; /* Более мягкие скругления */
+}
+
+/* 2. Глобальные стили */
+body {
+    font-family: var(--bs-font-sans-serif);
+    background-color: var(--bs-dark-blue);
+    color: var(--bs-light-text);
+}
+
+h1, h2, h3, h4, h5, h6, .fw-bold {
+    font-weight: 700 !important;
+}
+
+/* 3. Эффект "матового стекла" для карточек (Glassmorphism) */
+.card {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0));
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px); /* Для Safari */
+    border: 1px solid var(--bs-border-color);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+}
+
+.card-header, .list-group-item {
+    background-color: transparent !important;
+    border-color: var(--bs-border-color) !important;
+}
+
+/* 4. Стили для компонентов */
+
+/* Навигация */
+.navbar.navbar-dark {
+    background: rgba(26, 26, 46, 0.8) !important; /* Полупрозрачный фон */
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+.navbar-brand {
+    color: #fff !important;
+}
+
+/* Кнопки */
+.btn-primary {
+    background-color: var(--bs-primary);
+    border-color: var(--bs-primary);
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 0 10px rgba(233, 69, 96, 0.3);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0 20px var(--bs-primary);
+    background-color: #ff5c77;
+    border-color: #ff5c77;
+}
+
+.btn-secondary, .btn-outline-secondary {
+    background-color: var(--bs-dark-blue-light);
+    border-color: var(--bs-border-color);
+    color: var(--bs-light-text);
+}
+.btn-secondary:hover, .btn-outline-secondary:hover {
+    background-color: #3a3a5a;
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Формы */
+.form-control {
+    background-color: var(--bs-dark-blue-light);
+    border-color: var(--bs-border-color);
+    color: var(--bs-light-text);
+}
+.form-control:focus {
+    background-color: var(--bs-dark-blue-light);
+    border-color: var(--bs-primary);
+    color: var(--bs-light-text);
+    box-shadow: 0 0 10px rgba(233, 69, 96, 0.3);
+}
+.form-select {
+    background-color: var(--bs-dark-blue-light);
+    border-color: var(--bs-border-color);
+    color: var(--bs-light-text);
+}
+.form-label, .text-muted {
+    color: var(--bs-muted-text) !important;
+}

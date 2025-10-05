@@ -1,0 +1,146 @@
+{% extends 'base.html' %}
+{% load django_bootstrap5 %}
+
+{% block title %}Выбор времени - BeautyBook{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<link rel="stylesheet" href="https://npmcdn.com/flatpickr/dist/themes/material_blue.css">
+
+
+<style>
+    /* Кастомизация поля ввода даты */
+    .date-picker-wrapper {
+        position: relative;
+    }
+    /* Иконка календаря внутри поля */
+    .date-picker-wrapper::after {
+        content: '\f212'; /* Код иконки календаря из Bootstrap Icons */
+        font-family: 'bootstrap-icons';
+        position: absolute;
+        top: 50%;
+        right: 1.25rem;
+        transform: translateY(-50%);
+        color: var(--bs-primary);
+        font-size: 1.2rem;
+    }
+    #date-picker-input {
+        background-color: #fff;
+        border-width: 1px;
+        padding: 0.8rem 1.25rem;
+    }
+
+    /* Стили для кнопок выбора времени */
+    .time-slot-btn {
+        border-radius: var(--bs-border-radius);
+        border-width: 1px;
+        font-weight: 500;
+        padding: 0.5rem 1rem;
+    }
+
+    .slots-section h4 {
+        font-weight: 600;
+        color: var(--bs-primary);
+    }
+</style>
+
+<div class="container py-5">
+    <div class="text-center mb-5">
+        <h2 class="fw-bold">Шаг 3: Выберите дату и время</h2>
+        <p class="text-muted">Запись к мастеру {{ master.user.get_full_name }}</p>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-md-10">
+            <div class="date-picker-wrapper mb-5">
+                <input type="text" id="date-picker-input" class="form-control" placeholder="Нажмите, чтобы выбрать дату...">
+            </div>
+
+            <div id="slots-container">
+                <p class="text-muted text-center">Выберите дату, чтобы увидеть доступное время.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="confirmationModal" tabindex="-1">
+    <div class="modal-dialog"><div class="modal-content">
+        <div class="modal-header"><h5 class="modal-title">Подтверждение записи</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body" id="modal-body-content"></div>
+        <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button><button type="button" class="btn btn-primary" id="confirm-booking-btn">Подтвердить запись</button></div>
+    </div></div>
+</div>
+
+{% csrf_token %}
+
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://npmcdn.com/flatpickr/dist/l10n/ru.js"></script> <script>
+document.addEventListener('DOMContentLoaded', function() {
+    // --- Инициализация переменных ---
+    const slotsContainer = document.getElementById('slots-container');
+    const masterId = {{ master.id }};
+    const services = {{ selected_services_json|safe }};
+    const duration = {{ total_duration_minutes }};
+    const confirmationModal = new bootstrap.Modal(document.getElementById('confirmationModal'));
+
+    // --- Инициализация календаря Flatpickr ---
+    const fp = flatpickr("#date-picker-input", { // Привязываем к новому, видимому инпуту
+        // inline: false, // Убрали inline, теперь календарь будет выпадающим
+        dateFormat: "Y-m-d",
+        minDate: "today",
+        locale: "ru",
+        onChange: async function(selectedDates, dateStr, instance) {
+            if (!dateStr) return;
+            slotsContainer.innerHTML = '<div class="d-flex justify-content-center mt-5"><div class="spinner-border text-primary" role="status"></div></div>';
+            const response = await fetch(`/booking/api/slots/${masterId}/?date=${dateStr}&duration=${duration}`);
+            const data = await response.json();
+            renderSlots(data.available_slots);
+        }
+    });
+
+    function renderSlots(slots) {
+        slotsContainer.innerHTML = '';
+        if (slots.length === 0) {
+            slotsContainer.innerHTML = '<p class="text-muted text-center mt-5">На выбранную дату нет свободных слотов.</p>';
+            return;
+        }
+        const sections = {'Утро':{s:9,e:12,h:[]},'День':{s:12,e:18,h:[]},'Вечер':{s:18,e:22,h:[]}};
+        slots.forEach(slot=>{const h=parseInt(slot.split(':')[0]);if(h>=sections.Утро.s&&h<sections.Утро.e)sections.Утро.h.push(slot);else if(h>=sections.День.s&&h<sections.День.e)sections.День.h.push(slot);else if(h>=sections.Вечер.s&&h<sections.Вечер.e)sections.Вечер.h.push(slot);});
+        for(const[name,data]of Object.entries(sections)){if(data.h.length>0){let html=`<div class="slots-section mb-4"><h4 class="mb-3">${name}</h4><div class="d-flex flex-wrap gap-2">`;data.h.forEach(slot=>{html+=`<button class="btn btn-outline-primary time-slot-btn" data-time="${slot}">${slot}</button>`});html+=`</div></div>`;slotsContainer.innerHTML+=html;}}
+        document.querySelectorAll('.time-slot-btn').forEach(b => b.addEventListener('click', handleSlotClick));
+    }
+
+    // --- Остальной JS (handleSlotClick, confirm-booking-btn) остается без изменений ---
+    async function handleSlotClick(event) {
+        const time = event.target.dataset.time;
+        const date = fp.selectedDates[0] ? fp.formatDate(fp.selectedDates[0], "Y-m-d") : '';
+        if (!date) { alert("Пожалуйста, выберите дату."); return; }
+        let params = new URLSearchParams();
+        services.forEach(s => params.append('services[]', s));
+        const response = await fetch(`/booking/api/confirmation-details/?master_id=${masterId}&${params.toString()}&date=${date}&time=${time}`);
+        const data = await response.json();
+        let modalHtml=`<p><strong>Мастер:</strong> ${data.master_name}</p><p><strong>Дата:</strong> ${data.date}</p><p><strong>Время:</strong> ${data.time}</p><h5>Услуги:</h5><ul class="list-group">${data.services.map(s=>`<li class="list-group-item">${s.name} - ${s.price} тг.</li>`).join('')}</ul><h4 class="mt-3">Итого: ${data.total_price} тг.</h4><hr><div class="mb-3"><label for="client-name" class="form-label">Ваше имя</label><input type="text" id="client-name" class="form-control" value="{{user.get_full_name|default:''}}" required></div><div class="mb-3"><label for="client-phone" class="form-label">WhatsApp</label><input type="text" id="client-phone" class="form-control" value="{{user.phone_number|default:''}}" required></div>`;
+        document.getElementById('modal-body-content').innerHTML=modalHtml;
+        const confirmBtn = document.getElementById('confirm-booking-btn');
+        confirmBtn.dataset.date = date;
+        confirmBtn.dataset.time = time;
+        confirmationModal.show();
+    }
+    document.getElementById('confirm-booking-btn').addEventListener('click', async function() {
+        const clientNameInput = document.getElementById('client-name'), clientPhoneInput = document.getElementById('client-phone');
+        if (!clientNameInput.value || !clientPhoneInput.value) { alert('Пожалуйста, укажите ваше имя и номер WhatsApp.'); return; }
+        const date = this.dataset.date, time = this.dataset.time, csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        const formData = new FormData();
+        formData.append('master_id', masterId);
+        services.forEach(s => formData.append('services[]', s));
+        formData.append('date', date);
+        formData.append('time', time);
+        formData.append('client_name', clientNameInput.value);
+        formData.append('client_phone', clientPhoneInput.value);
+        const response = await fetch('/booking/api/create-appointment/', {method:'POST',headers:{'X-CSRFToken':csrfToken},body:formData});
+        const result = await response.json();
+        if(result.status==='success'&&result.redirect_url){window.location.href=result.redirect_url;}else{alert(result.message || 'Ошибка при создании записи.');}
+    });
+});
+</script>
+{% endblock %}

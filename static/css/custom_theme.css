@@ -1,0 +1,54 @@
+/* static/css/custom_theme.css */
+
+/* Определяем нашу кастомную палитру и стили */
+:root {
+    --bs-primary: #D988A7; /* Нежный розово-лиловый */
+    --bs-primary-rgb: 217, 136, 167;
+    --bs-secondary: #f0e6e6; /* Светлый бежевый */
+    --bs-body-bg: #FCFBFB; /* Очень светлый фон */
+    --bs-body-color: #4a4a4a; /* Мягкий темный для текста */
+    --bs-font-sans-serif: 'Montserrat', sans-serif; /* Красивый шрифт */
+    --bs-border-radius: 0.5rem; /* Более скругленные углы */
+    --bs-btn-padding-y: 0.6rem;
+    --bs-btn-padding-x: 1.2rem;
+}
+
+body {
+    font-family: var(--bs-font-sans-serif);
+}
+
+/* Стили для кнопок */
+.btn-primary {
+    background-color: var(--bs-primary);
+    border-color: var(--bs-primary);
+    font-weight: 600;
+    transition: all 0.2s ease-in-out;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    background-color: #c97897;
+    border-color: #c97897;
+}
+
+/* Стили для ссылок */
+a {
+    color: var(--bs-primary);
+}
+
+a:hover {
+    color: #c97897;
+}
+
+/* Кастомизация карточек */
+.card {
+    border: none;
+    border-radius: var(--bs-border-radius);
+    box-shadow: 0 4px 25px rgba(0, 0, 0, 0.05);
+}
+
+/* Убираем подчеркивание у ссылок в карточках */
+.card a {
+    text-decoration: none;
+}

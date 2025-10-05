@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+{% load django_bootstrap5 %}
+{% load static %}
+
+{% block title %}Расписание на день{% endblock %}
+{% block container_class %}container-fluid{% endblock %}
+
+{% block content %}
+<style>
+    .time-section-header { font-weight: 600; margin-bottom: 1.5rem; padding-bottom: 0.5rem; border-bottom: 2px solid; }
+    .header-morning { border-color: #198754; }
+    .header-day { border-color: #0d6efd; }
+    .header-evening { border-color: #fd7e14; }
+    .appointment-card { border-left-width: 4px; transition: all 0.2s ease-in-out; }
+    .appointment-card:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,0.1); }
+    .card-morning { border-left-color: #198754; }
+    .card-day { border-left-color: #0d6efd; }
+    .card-evening { border-left-color: #fd7e14; }
+    .appointment-time { font-weight: 600; font-size: 1.1rem; }
+    .appointment-client { font-weight: 600; }
+    .appointment-services { font-size: 0.85rem; list-style-type: none; padding-left: 0; }
+</style>
+
+<div class="py-4 px-md-4">
+    <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1100">
+        <div id="notificationToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="10000"><div class="toast-header bg-primary text-white"><strong class="me-auto" id="toast-title"></strong><button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button></div><div class="toast-body fs-6" id="toast-body" style="white-space: pre-wrap;"></div></div>
+    </div>
+    <div id="enable-sound-banner" class="alert alert-info d-flex justify-content-between align-items-center"><span>Для звуковых уведомлений требуется ваше разрешение.</span><button id="enable-sound-btn" class="btn btn-primary btn-sm">Включить звук</button></div>
+
+    <h1 class="display-6">Расписание на день</h1>
+    <p class="text-muted">Расписание на {{ selected_date|date:"d E Y" }}</p>
+
+    <div class="card shadow-sm mt-4 mb-5"><div class="card-body"><form method="get" class="row g-3 align-items-end"><div class="col-md-6"><label for="master" class="form-label">Мастер</label><select name="master" id="master" class="form-select" onchange="this.form.submit()"><option value="">Все мастера</option>{% for master in masters %}<option value="{{ master.id }}" {% if selected_master and master.id == selected_master.id %}selected{% endif %}>{{ master.user.get_full_name }}</option>{% endfor %}</select></div><div class="col-md-6"><label for="date" class="form-label">Дата</label><input type="date" name="date" id="date" value="{{ selected_date|date:'Y-m-d' }}" class="form-control" onchange="this.form.submit()"></div></form></div></div>
+
+    <div class="row g-4">
+        <div class="col-lg-4">
+            <h3 class="time-section-header header-morning"><i class="bi bi-sunrise-fill me-2"></i>Утро</h3>
+            {% for app in morning_appointments %}{% include "dashboard/appointment_card.html" %}{% empty %}<p class="text-muted">Нет записей</p>{% endfor %}
+        </div>
+        <div class="col-lg-4">
+            <h3 class="time-section-header header-day"><i class="bi bi-sun-fill me-2"></i>День</h3>
+            {% for app in day_appointments %}{% include "dashboard/appointment_card.html" %}{% empty %}<p class="text-muted">Нет записей</p>{% endfor %}
+        </div>
+        <div class="col-lg-4">
+            <h3 class="time-section-header header-evening"><i class="bi bi-moon-stars-fill me-2"></i>Вечер</h3>
+            {% for app in evening_appointments %}{% include "dashboard/appointment_card.html" %}{% empty %}<p class="text-muted">Нет записей</p>{% endfor %}
+        </div>
+    </div>
+</div>
+
+<audio id="notification-sound" src="/static/notification.mp3" preload="auto"></audio>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // --- Логика для звука и Toast-уведомлений (скопирована с дашборда) ---
+    const notificationSound = document.getElementById('notification-sound');
+    const enableSoundBtn = document.getElementById('enable-sound-btn');
+    const enableSoundBanner = document.getElementById('enable-sound-banner');
+    const notificationToastEl = document.getElementById('notificationToast');
+    const notificationToast = new bootstrap.Toast(notificationToastEl);
+    let soundEnabled = false;
+    enableSoundBtn.addEventListener('click', function() {
+        notificationSound.muted=false;
+        notificationSound.play().then(() => {
+            notificationSound.pause(); notificationSound.currentTime=0;
+            enableSoundBanner.style.display='none'; soundEnabled=true;
+        }).catch(error => { alert("Не удалось включить звук."); });
+    });
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const wsUrl = protocol + '//' + window.location.host + '/ws/notifications/';
+    const notificationSocket = new WebSocket(wsUrl);
+    notificationSocket.onopen = function(e){ console.log("WebSocket: Соединение установлено!"); };
+    notificationSocket.onmessage = function(e){
+        const data = JSON.parse(e.data);
+        showToast(data.message);
+    };
+    notificationSocket.onclose = function(e){ console.error('WebSocket: Соединение закрыто.'); };
+    function showToast(message){
+        document.getElementById('toast-title').textContent = message.title;
+        document.getElementById('toast-body').textContent = message.body;
+        notificationToast.show();
+        if (soundEnabled) { notificationSound.currentTime = 0; notificationSound.play(); }
+    }
+
+    // --- Новая логика для кнопок WhatsApp ---
+    document.querySelectorAll('.whatsapp-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const card = this.closest('.appointment-card');
+            const clientName = card.dataset.clientName;
+            const clientPhone = card.dataset.clientPhone;
+            const masterName = card.dataset.masterName;
+            const date = card.dataset.date;
+            const time = card.dataset.time;
+            const servicesText = card.dataset.services;
+            const address = "ул. Примерная, д. 1, кв. 2"; // <-- Укажите ваш реальный адрес
+
+            let message = `Здравствуйте, ${clientName}!\n\n`;
+            message += `Напоминаем о вашей записи в BeautyBook:\n`;
+            message += `------------------------------------\n`;
+            message += `*Дата:* ${date}\n`;
+            message += `*Время:* ${time}\n`;
+            message += `*Мастер:* ${masterName}\n\n`;
+            message += `*Услуги:*\n${servicesText}\n`;
+            message += `------------------------------------\n`;
+            message += `*Адрес:* ${address}\n\n`;
+            message += `Пожалуйста, не опаздывайте!`;
+
+            // Кодируем текст для URL и создаем ссылку
+            const encodedMessage = encodeURIComponent(message);
+            const whatsappUrl = `https://wa.me/${clientPhone}?text=${encodedMessage}`;
+
+            // Открываем ссылку в новой вкладке
+            window.open(whatsappUrl, '_blank');
+        });
+    });
+});
+</script>
+{% endblock %}

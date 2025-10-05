@@ -1,0 +1,125 @@
+{% extends '../base.html' %}
+{% load static %}
+{% load django_bootstrap5 %}
+
+{% block title %}BI Панель - BeautyBook{% endblock %}
+{% block container_class %}container-fluid{% endblock %}
+
+{% block content %}
+<style>
+    /* Кастомные стили */
+    .kpi-card .card-body { display: flex; align-items: center; }
+    .kpi-card .kpi-icon { font-size: 2.5rem; padding: 1rem; margin-right: 1.5rem; border-radius: 50%; background-color: rgba(255, 255, 255, 0.2); }
+    #live-clock { font-size: 1.05em; font-weight: 600; min-width: 80px; display: inline-block; text-align: center; }
+    .review-rating { color: #ffc107; }
+
+    /* ▼▼▼ НОВЫЕ СТИЛИ ДЛЯ БЫСТРЫХ ДЕЙСТВИЙ ▼▼▼ */
+    .quick-actions-list .list-group-item {
+        font-weight: 600;
+        font-size: 1rem;
+        padding: 1rem 1.25rem;
+        border: none;
+        transition: all 0.2s ease-in-out;
+    }
+    .quick-actions-list .list-group-item:hover {
+        background-color: var(--bs-body-bg); /* Цвет фона страницы */
+        color: var(--bs-primary);
+        transform: translateX(5px);
+    }
+    .quick-actions-list .list-group-item i {
+        color: var(--bs-primary);
+        font-size: 1.2rem;
+        width: 30px; /* Фиксированная ширина для иконок */
+    }
+</style>
+
+<div class="py-4 px-md-4">
+    <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1100"><div id="notificationToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="10000"><div class="toast-header bg-primary text-white"><strong class="me-auto" id="toast-title"></strong><button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button></div><div class="toast-body fs-6" id="toast-body" style="white-space: pre-wrap;"></div></div></div>
+    <div id="enable-sound-banner" class="alert alert-info d-flex justify-content-between align-items-center"><span>Для звуковых уведомлений требуется ваше разрешение.</span><button id="enable-sound-btn" class="btn btn-primary btn-sm">Включить звук</button></div>
+
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div><h1 class="display-6 mb-0">BI Панель</h1><p class="text-muted mb-0">Обзор активности салона на {% now "d E, Y" %}</p></div>
+        <div><span class="badge bg-dark fs-6 align-middle p-2"><i class="bi bi-clock me-1"></i><span id="live-clock"></span></span></div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="row g-4 mb-4">
+                <div class="col-md-6"><div class="card kpi-card bg-primary text-white shadow-sm"><div class="card-body"><div class="kpi-icon"><i class="bi bi-calendar-check"></i></div><div><h6 class="card-title">Записей сегодня</h6><p class="display-5 fw-bold mb-0">{{ new_appointments_count }}</p></div></div></div></div>
+                <div class="col-md-6"><div class="card kpi-card bg-success text-white shadow-sm"><div class="card-body"><div class="kpi-icon"><i class="bi bi-cash-stack"></i></div><div><h6 class="card-title">Выручка сегодня</h6><p class="display-5 fw-bold mb-0">{{ revenue_today|floatformat:"0" }} <small>тг.</small></p></div></div></div></div>
+                <div class="col-md-6"><div class="card kpi-card bg-warning text-dark h-100 shadow"><div class="card-body"><div class="kpi-icon"><i class="bi bi-people"></i></div><div><h6 class="card-title">Топ мастер</h6><p class="display-5 fw-bold mb-0">{{ master_load.0.user.first_name|default:master_load.0.user.username|default:"—" }}</p><small>{{ master_load.0.appointment_count|default:"0" }} записей</small></div></div></div></div>
+                <div class="col-md-6"><div class="card kpi-card bg-info text-white h-100 shadow"><div class="card-body"><div class="kpi-icon"><i class="bi bi-person-check"></i></div><div><h5 class="card-title">Всего мастеров</h5><p class="display-4 fw-bold mb-0">{{ master_load.count }}</p></div></div></div></div>
+            </div>
+            <div class="card shadow-sm mb-4"><div class="card-header"><h5 class="card-title mb-0">Динамика записей (7 дней)</h5></div><div class="card-body" style="min-height: 300px;"><canvas id="appointmentsChart"></canvas></div></div>
+            <div class="card shadow-sm"><div class="card-header"><h5 class="card-title mb-0">Динамика выручки (12 месяцев)</h5></div><div class="card-body" style="min-height: 300px;"><canvas id="revenueChart"></canvas></div></div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header"><h5 class="card-title mb-0">Быстрые действия</h5></div>
+                <div class="list-group list-group-flush quick-actions-list">
+                    <a href="{% url 'booking:schedule_view' %}" class="list-group-item list-group-item-action"><i class="bi bi-grid-3x3-gap-fill me-2"></i> Визуальное расписание</a>
+                    <a href="{% url 'booking:all_appointments' %}" class="list-group-item list-group-item-action"><i class="bi bi-card-list me-2"></i> Все записи</a>
+                    <a href="/admin/users/masterprofile/" class="list-group-item list-group-item-action"><i class="bi bi-people-fill me-2"></i> Управление мастерами</a>
+                    <a href="/admin/booking/service/" class="list-group-item list-group-item-action"><i class="bi bi-scissors me-2"></i> Управление услугами</a>
+                </div>
+            </div>
+            <div class="card shadow-sm"><div class="card-header"><h5 class="card-title mb-0">Последние отзывы</h5></div><div class="card-body"><div class="list-group list-group-flush">{% for review in latest_reviews %}<div class="list-group-item px-0"><div class="d-flex w-100 justify-content-between"><h6 class="mb-1">{{ review.client.first_name|default:review.client.username }}</h6><div class="review-rating">{% for i in "x"|ljust:review.rating %}★{% endfor %}</div></div><p class="mb-1 small text-muted">"{{ review.comment|truncatewords:10 }}"</p></div>{% empty %}<p class="text-muted">Отзывов пока нет.</p>{% endfor %}</div></div></div>
+        </div>
+    </div>
+</div>
+
+<audio id="notification-sound" src="/static/notification.mp3" preload="auto"></audio>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const clockElement = document.getElementById('live-clock');
+    function updateClock() { clockElement.textContent = new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', second: '2-digit' }); }
+    setInterval(updateClock, 1000); updateClock();
+
+    const notificationSound = document.getElementById('notification-sound');
+    const enableSoundBtn = document.getElementById('enable-sound-btn');
+    const enableSoundBanner = document.getElementById('enable-sound-banner');
+    const notificationToastEl = document.getElementById('notificationToast');
+    const notificationToast = new bootstrap.Toast(notificationToastEl);
+    let soundEnabled = false;
+
+    enableSoundBtn.addEventListener('click', function() {
+        notificationSound.muted = false;
+        notificationSound.play().then(() => {
+            notificationSound.pause(); notificationSound.currentTime = 0;
+            enableSoundBanner.style.display = 'none'; soundEnabled = true;
+            showToast({title: 'Успех!', body: 'Звуковые уведомления включены.'});
+        }).catch(error => { alert("Не удалось включить звук."); });
+    });
+
+    const appointmentsCtx = document.getElementById('appointmentsChart').getContext('2d');
+    const appointmentsChart = new Chart(appointmentsCtx, {type:'line',data:{labels:{{chart_labels|safe}},datasets:[{label:'Кол-во записей',data:{{chart_data|safe}},backgroundColor:'rgba(93,83,222,0.1)',borderColor:'#5d53de',borderWidth:2,tension:0.3,fill:true,pointBackgroundColor:'#5d53de'}]},options:{responsive:true,maintainAspectRatio:false,scales:{y:{beginAtZero:true,ticks:{stepSize:1}}}}});
+
+    const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+    const revenueChart = new Chart(revenueCtx, {type:'bar',data:{labels:{{revenue_chart_labels|safe}},datasets:[{label:'Выручка, тг.',data:{{revenue_chart_data|safe}},backgroundColor:'rgba(32, 201, 151, 0.7)',borderColor:'rgba(32, 201, 151, 1)',borderWidth:1,borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,scales:{y:{beginAtZero:true}}}});
+
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const wsUrl = protocol + '//' + window.location.host + '/ws/notifications/';
+    const notificationSocket = new WebSocket(wsUrl);
+
+    notificationSocket.onopen = function(e){ console.log("WebSocket: Соединение установлено!"); };
+    notificationSocket.onmessage = function(e){
+        const data = JSON.parse(e.data);
+        showToast(data.message);
+    };
+    notificationSocket.onclose = function(e){ console.error('WebSocket: Соединение закрыто. Убедитесь, что запущен DAPHNE и REDIS.'); };
+
+    function showToast(message) {
+        document.getElementById('toast-title').textContent = message.title;
+        document.getElementById('toast-body').textContent = message.body;
+        notificationToast.show();
+        if (soundEnabled) {
+            notificationSound.currentTime = 0;
+            notificationSound.play();
+        }
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,147 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}BeautyBook - Онлайн-запись в салон красоты{% endblock %}
+
+{% block container_class %}container-fluid p-0{% endblock %}
+
+{% block content %}
+<style>
+    /* Переменные для красивых цветов иконок */
+    :root {
+        --icon-bg-1: #e9e7fd;
+        --icon-color-1: #5d53de;
+        --icon-bg-2: #dcf7ee;
+        --icon-color-2: #20c997;
+        --icon-bg-3: #fff0e4;
+        --icon-color-3: #fd7e14;
+    }
+
+    /* Секция "Герой" с градиентом */
+    .hero-section {
+        background:  linear-gradient(rgba(255,255,255,45%), rgba(255,255,255,45%)), url({% static './img/background.png' %});
+        background-size: cover;
+        background-position: center;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        text-align: center;
+    }
+
+    .hero-section .display-4 {
+        font-weight: 700;
+    }
+
+    .hero-section .lead {
+        max-width: 600px;
+        margin: 1.5rem auto 2.5rem auto;
+    }
+
+    .btn-primary {
+        transition: all 0.3s ease;
+    }
+    .btn-primary:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+
+    /* Секция с преимуществами */
+    .features-section {
+        padding: 5rem 0;
+    }
+
+    .feature-card {
+        transition: all 0.3s ease;
+        border: none;
+        border-radius: 1rem;
+    }
+
+    .feature-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+    }
+
+    .feature-icon {
+        font-size: 2.5rem;
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1.5rem;
+    }
+
+    /* Применяем цвета к иконкам */
+    .feature-icon.icon-1 { background-color: var(--icon-bg-1); color: var(--icon-color-1); }
+    .feature-icon.icon-2 { background-color: var(--icon-bg-2); color: var(--icon-color-2); }
+    .feature-icon.icon-3 { background-color: var(--icon-bg-3); color: var(--icon-color-3); }
+
+    /* Секция с призывом к действию */
+    .cta-section {
+        background-color: #343a40;
+        border-radius: 1rem;
+        padding: 4rem 2rem;
+    }
+</style>
+
+<div class="hero-section text-center">
+    <div class="container">
+        <h1 class="display-4">Идеальная запись в одно касание</h1>
+        <p class="lead text-muted">
+            Забудьте о звонках и ожидании. С BeautyBook вы можете выбрать услугу, мастера и удобное время онлайн — быстро, просто и в любое время суток.
+        </p>
+        <a href="{% url 'booking:service_selection' %}" class="btn btn-primary btn-lg px-4 gap-3">
+            <i class="bi bi-calendar-check-fill me-2"></i> Записаться онлайн
+        </a>
+    </div>
+</div>
+
+<div class="features-section">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="fw-bold">Всегда к вашим услугам</h2>
+            <p class="text-muted">Три простых шага к вашей идеальной внешности.</p>
+        </div>
+        <div class="row text-center g-4">
+            <div class="col-lg-4">
+                <div class="card feature-card p-4 h-100 align-items-center">
+                    <div class="feature-icon icon-1">
+                        <i class="bi bi-hand-index-thumb"></i>
+                    </div>
+                    <h3 class="h4 fw-semibold">Выбирайте легко</h3>
+                    <p class="text-muted">Просматривайте полный список услуг и выбирайте одного или нескольких мастеров, читая реальные отзывы.</p>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="card feature-card p-4 h-100 align-items-center">
+                    <div class="feature-icon icon-2">
+                        <i class="bi bi-clock-history"></i>
+                    </div>
+                    <h3 class="h4 fw-semibold">Бронируйте мгновенно</h3>
+                    <p class="text-muted">Актуальное расписание каждого мастера доступно 24/7. Найдите свободное окошко и запишитесь в два клика.</p>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="card feature-card p-4 h-100 align-items-center">
+                    <div class="feature-icon icon-3">
+                        <i class="bi bi-bell"></i>
+                    </div>
+                    <h3 class="h4 fw-semibold">Наслаждайтесь результатом</h3>
+                    <p class="text-muted">Получайте напоминания о визите и управляйте своими записями в удобном личном кабинете.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container my-5">
+    <div class="cta-section text-center text-white">
+        <h2 class="fw-bold">Готовы преобразиться?</h2>
+        <p class="lead my-4">Ваш идеальный мастер уже ждет вас. Не откладывайте заботу о себе.</p>
+        <a href="{% url 'booking:service_selection' %}" class="btn btn-primary btn-lg px-4 gap-3">
+            <i class="bi bi-calendar-check-fill me-2"></i> Найти свободное время
+        </a>
+    </div>
+</div>
+
+{% endblock %}

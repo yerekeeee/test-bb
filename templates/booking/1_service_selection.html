@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+{% load booking_extras %}
+
+{% block content %}
+<style>
+    /* Стиль для карточек услуг (без изменений) */
+    .service-card-label { display: block; cursor: pointer; margin-bottom: 1rem; border-radius: var(--bs-border-radius); }
+    .service-card { display: flex; justify-content: space-between; align-items: center; padding: 1.25rem; border: 1px solid var(--bs-gray-200); border-radius: var(--bs-border-radius); transition: all 0.2s ease-in-out; background-color: #fff; }
+    .service-card-label:hover .service-card { transform: translateY(-3px); box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); }
+    .service-card-label input[type="checkbox"] { display: none; }
+    .service-card-label input[type="checkbox"]:checked + .service-card { border-color: var(--bs-primary); background-color: #fdf5f9; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); }
+    .custom-checkbox { width: 28px; height: 28px; border: 2px solid var(--bs-gray-300); border-radius: 0.5rem; display: flex; align-items: center; justify-content: center; transition: all 0.2s ease-in-out; flex-shrink: 0; margin-left: 1rem; }
+    .custom-checkbox::after { content: '✔'; font-size: 1.2rem; color: #fff; opacity: 0; transform: scale(0.5); transition: all 0.2s ease-in-out; }
+    .service-card-label input[type="checkbox"]:checked + .service-card .custom-checkbox { background-color: var(--bs-primary); border-color: var(--bs-primary); }
+    .service-card-label input[type="checkbox"]:checked + .service-card .custom-checkbox::after { opacity: 1; transform: scale(1); }
+    .service-name { font-weight: 600; font-size: 1.1rem; }
+    .service-details { color: var(--bs-gray-600); }
+
+    /* ▼▼▼ ИЗМЕНЕННЫЕ СТИЛИ ДЛЯ КНОПКИ ▼▼▼ */
+    .sticky-footer-container {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        padding: 1.5rem; /* Увеличили отступ для большего размера */
+        background-color: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(10px);
+        border-top: 1px solid var(--bs-gray-200);
+        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.05);
+        z-index: 10;
+    }
+
+    /* Увеличили отступ, чтобы компенсировать размер кнопки */
+    .services-container {
+        padding-bottom: 150px;
+    }
+</style>
+
+<div class="container py-5">
+    <div class="text-center mb-5">
+        <h2 class="fw-bold">Шаг 1: Выберите услуги</h2>
+        <p class="text-muted">Вы можете выбрать одну или несколько услуг.</p>
+    </div>
+
+    <form action="{% url 'booking:master_selection' %}" method="get" id="service-form">
+        <div class="services-container">
+            {% for service in services %}
+                <label class="service-card-label">
+                    <input class="form-check-input" type="checkbox" name="services" value="{{ service.id }}">
+                    <div class="service-card">
+                        <div class="service-info">
+                            <div class="service-name">{{ service.name }}</div>
+                            <div class="service-details mt-1">
+                                <span>{{ service.duration|format_duration }}</span>
+                                <span class="mx-2">•</span>
+                                <span>{{ service.price|floatformat:"0" }} тг.</span>
+                            </div>
+                        </div>
+                        <div class="custom-checkbox"></div>
+                    </div>
+                </label>
+            {% endfor %}
+        </div>
+
+        <div class="sticky-footer-container text-center">
+            <button type="submit" class="btn btn-primary btn-lg px-5">Далее: выбрать мастера →</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

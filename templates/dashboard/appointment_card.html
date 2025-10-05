@@ -1,0 +1,41 @@
+<div class="card shadow-sm mb-3 appointment-card
+    {% if 9 <= app.start_time|date:'H'|add:0 and app.start_time|date:'H'|add:0 < 12 %}card-morning{% endif %}
+    {% if 12 <= app.start_time|date:'H'|add:0 and app.start_time|date:'H'|add:0 < 18 %}card-day{% endif %}
+    {% if 18 <= app.start_time|date:'H'|add:0 and app.start_time|date:'H'|add:0 < 23 %}card-evening{% endif %}"
+
+    data-client-name="{{ app.client_display_name }}"
+    data-client-phone="{{ app.client_display_phone }}"
+    data-master-name="{{ app.master.user.get_full_name }}"
+    data-date="{{ app.start_time|date:'d.m.Y' }}"
+    data-time="{{ app.start_time|date:'H:i' }}"
+    data-services="{{ app.services_text_for_whatsapp }}"
+    >
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start">
+            <div class="appointment-time">{{ app.start_time|date:"H:i" }}</div>
+            <div class="text-end">
+                <div class="appointment-client">{{ app.client_display_name }}</div>
+                <div class="small text-muted">{{ app.client_display_phone }}</div>
+                {% if not selected_master %}
+                <small class="text-muted">к {{ app.master.user.first_name }}</small>
+                {% endif %}
+            </div>
+        </div>
+
+        <hr class="my-2">
+
+        <div class="appointment-services mb-2">
+            <ul class="list-unstyled mb-0">
+                {% for service in app.services.all %}
+                    <li class="small">- {{ service.name }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <div class="text-end">
+            <button class="btn btn-success btn-sm whatsapp-btn">
+                <i class="bi bi-whatsapp"></i> Написать клиенту
+            </button>
+        </div>
+    </div>
+</div>

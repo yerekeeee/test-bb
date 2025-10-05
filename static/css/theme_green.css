@@ -1,0 +1,75 @@
+/* static/css/theme_green.css */
+
+/* 1. Определяем новую цветовую палитру */
+:root {
+    --bs-primary: #1dd34b; /* Яркий зеленый */
+    --bs-primary-rgb: 29, 211, 75;
+    --bs-secondary: #a3a3a3; /* Серый */
+    --bs-body-bg: #f5f5f5;   /* Светло-серый фон */
+    --bs-body-color: #030303;  /* Черный текст */
+    --bs-light: #ffffff;    /* Белый */
+    --bs-accent: #f47072;    /* Коралловый акцент */
+
+    --bs-font-sans-serif: 'Montserrat', sans-serif;
+    --bs-border-radius: 0.5rem;
+    --bs-btn-padding-y: 0.6rem;
+    --bs-btn-padding-x: 1.2rem;
+}
+
+body {
+    font-family: var(--bs-font-sans-serif);
+    background-color: var(--bs-body-bg);
+    color: var(--bs-body-color);
+}
+
+/* 2. Стилизуем компоненты в новых цветах */
+
+/* Кнопки */
+.btn-primary {
+    background-color: var(--bs-primary);
+    border-color: var(--bs-primary);
+    color: var(--bs-light);
+    font-weight: 600;
+    transition: all 0.2s ease-in-out;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(29, 211, 75, 0.3);
+    background-color: #18b33f;
+    border-color: #17a33a;
+}
+
+.btn-secondary {
+    color: var(--bs-body-color);
+    background-color: var(--bs-light);
+    border-color: #e0e0e0;
+}
+
+/* Ссылки */
+a {
+    color: var(--bs-primary);
+    text-decoration: none;
+}
+
+a:hover {
+    color: #18b33f;
+}
+
+/* Навигация */
+.navbar-brand {
+    color: var(--bs-primary) !important;
+}
+
+/* Карточки */
+.card {
+    border: none;
+    background-color: var(--bs-light);
+    border-radius: var(--bs-border-radius);
+    box-shadow: 0 4px 25px rgba(0, 0, 0, 0.05);
+}
+
+/* Акценты */
+.text-warning {
+    color: var(--bs-accent) !important;
+}

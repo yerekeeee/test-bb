@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+{% load django_bootstrap5 %}
+
+{% block title %}Запись подтверждена!{% endblock %}
+
+{% block content %}
+<style>
+    /* Стили для анимированной галочки */
+    .success-animation { margin-bottom: 2rem; }
+    .checkmark { width: 100px; height: 100px; border-radius: 50%; display: block; stroke-width: 3; stroke: #fff; stroke-miterlimit: 10; margin: 10% auto; box-shadow: inset 0px 0px 0px #1dd34b; animation: fill .4s ease-in-out .4s forwards, scale .3s ease-in-out .9s both; }
+    .checkmark__circle { stroke-dasharray: 166; stroke-dashoffset: 166; stroke-width: 3; stroke-miterlimit: 10; stroke: #1dd34b; fill: none; animation: stroke .6s cubic-bezier(0.65, 0, 0.45, 1) forwards; }
+    .checkmark__check { transform-origin: 50% 50%; stroke-dasharray: 48; stroke-dashoffset: 48; animation: stroke .3s cubic-bezier(0.65, 0, 0.45, 1) .8s forwards; }
+    @keyframes stroke { 100% { stroke-dashoffset: 0; } }
+    @keyframes scale { 0%, 100% { transform: none; } 50% { transform: scale3d(1.1, 1.1, 1); } }
+    @keyframes fill { 100% { box-shadow: inset 0px 0px 0px 50px #1dd34b; } }
+
+    /* Общие стили страницы */
+    .success-card { max-width: 650px; border: none; }
+    .details-card { background-color: #f5f5f5; border-radius: var(--bs-border-radius); }
+    .kaspi-alert { background-color: #ffebeb; border: none; }
+    .kaspi-btn { background-color: #F14635; color: white; font-weight: 600; }
+    .kaspi-btn:hover { background-color: #d13c2c; color: white; }
+    .details-list .list-group-item { background-color: transparent; }
+</style>
+
+<div class="container py-5 text-center">
+    <div class="card success-card shadow-sm mx-auto">
+        <div class="card-body p-4 p-md-5">
+
+            <div class="success-animation">
+                <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
+                    <circle class="checkmark__circle" cx="26" cy="26" r="25" fill="none"/>
+                    <path class="checkmark__check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+                </svg>
+            </div>
+
+            <h1 class="fw-bold">Запись подтверждена!</h1>
+            <p class="lead text-muted">Спасибо! Мы ждем вас в нашем салоне.</p>
+
+            <div class="card details-card my-4 text-start">
+                <div class="card-header bg-transparent border-0 pt-3">
+                    <strong>Детали вашей записи</strong>
+                </div>
+                <ul class="list-group list-group-flush details-list">
+                    <li class="list-group-item d-flex align-items-center">
+                        <i class="bi bi-person-circle fs-5 me-3 text-muted"></i>
+                        <div><strong>Мастер:</strong> {{ appointment.master.user.get_full_name }}</div>
+                    </li>
+                    <li class="list-group-item d-flex align-items-center">
+                        <i class="bi bi-calendar-event fs-5 me-3 text-muted"></i>
+                        <div><strong>Дата и время:</strong> {{ appointment.start_time|date:"d E Y, H:i" }}</div>
+                    </li>
+                    <li class="list-group-item d-flex align-items-start">
+                        <i class="bi bi-scissors fs-5 me-3 text-muted"></i>
+                        <div>
+                            <strong>Услуги:</strong>
+                            <ul class="list-unstyled mt-1">
+                                {% for service in appointment.services.all %}<li>- {{ service.name }}</li>{% endfor %}
+                            </ul>
+                        </div>
+                    </li>
+                    <li class="list-group-item d-flex align-items-center">
+                        <i class="bi bi-wallet2 fs-5 me-3 text-muted"></i>
+                        <div><strong>Итого к оплате:</strong> {{ appointment.total_price|floatformat:"0" }} тг.</div>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="alert kaspi-alert" role="alert">
+                <h4 class="alert-heading fw-bold">Завершите бронирование</h4>
+                <p>Для окончательного подтверждения записи внесите предоплату <strong>500 тг</strong> через Kaspi.</p>
+                <hr>
+                <p class="mb-2"><strong>Получатель: Тайжан Р.</strong></p>
+                <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
+                    <a href="https://kaspi.kz/pay/ЗаплатитьПоНомеру?phone=77773332211&amount=500" target="_blank" class="btn kaspi-btn">
+                        <i class="bi bi-phone-fill me-2"></i>Открыть Kaspi.kz для оплаты
+                    </a>
+                    <button id="copy-btn" class="btn btn-outline-secondary">Скопировать номер</button>
+                </div>
+                <span id="kaspi-number" class="d-none">+77773332211</span>
+            </div>
+
+            <a href="{% url 'home' %}" class="btn btn-link text-muted mt-3">Вернуться на главную</a>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('copy-btn').addEventListener('click', function() {
+    const numberToCopy = document.getElementById('kaspi-number').innerText;
+    navigator.clipboard.writeText(numberToCopy).then(() => {
+        this.innerText = 'Скопировано!'; this.classList.replace('btn-outline-secondary', 'btn-success');
+        setTimeout(() => {this.innerText = 'Скопировать номер'; this.classList.replace('btn-success', 'btn-outline-secondary');}, 2000);
+    }).catch(err => {console.error('Ошибка копирования: ', err);});
+});
+</script>
+{% endblock %}

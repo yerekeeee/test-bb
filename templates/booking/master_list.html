@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% load django_bootstrap5 %}
+
+{% block title %}Выбор мастера - BeautyBook{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="text-center mb-4">
+        <h1 class="display-6">Выберите мастера</h1>
+        <p class="lead text-muted">для услуги «{{ service.name }}»</p>
+    </div>
+
+    <div class="list-group shadow-sm mb-4">
+        {% for master_profile in masters %}
+             <a href="{% url 'booking:booking_calendar' service.id master_profile.user.id %}" class="list-group-item list-group-item-action">
+                <h5 class="mb-1">{{ master_profile.user.get_full_name }}</h5>
+                <p class="mb-1 text-muted">{{ master_profile.bio|default:"Профессионал своего дела" }}</p>
+            </a>
+        {% empty %}
+            <div class="list-group-item">
+                <p class="mb-1">К сожалению, для этой услуги пока нет доступных мастеров.</p>
+            </div>
+        {% endfor %}
+    </div>
+
+    <div class="text-center">
+        <a href="{% url 'booking:service_list' %}" class="btn btn-secondary">‹ Назад к выбору услуг</a>
+    </div>
+</div>
+{% endblock %}

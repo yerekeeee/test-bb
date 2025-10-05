@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+{% load django_bootstrap5 %}
+
+{% block title %}Оставить отзыв{% endblock %}
+
+{% block content %}
+<style>
+/* Контейнер для звезд */
+.star-rating {
+    display: flex;
+    /* Разворачиваем звезды, чтобы магия CSS сработала */
+    flex-direction: row-reverse;
+    justify-content: center;
+    gap: 0.25rem;
+    /* Убираем лишний отступ снизу у поля формы */
+    margin-bottom: 1rem;
+}
+
+/* Скрываем настоящие радио-кнопки */
+.star-rating input {
+    display: none;
+}
+
+/* Стилизуем лейблы, которые выглядят как звезды */
+.star-rating label {
+    font-size: 2.5rem;
+    color: #e0e0e0;
+    cursor: pointer;
+    transition: color 0.2s ease-in-out;
+}
+
+/* Когда наводим на звезду, она и все справа от нее (т.е. предыдущие) загораются */
+.star-rating label:hover,
+.star-rating label:hover ~ label {
+    color: #ffc107;
+}
+
+/* Когда радио-кнопка ВЫБРАНА, ее звезда и все предыдущие остаются закрашенными */
+.star-rating input:checked ~ label {
+    color: #ffc107;
+}
+</style>
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow-sm">
+                <div class="card-body p-4 p-md-5">
+                    <h2 class="card-title text-center">Оставить отзыв</h2>
+                    <p class="text-muted text-center">
+                        Вы оставляете отзыв о визите к мастеру <br><strong>{{ appointment.master.user.get_full_name }}</strong>
+                        ({{ appointment.start_time|date:"d.m.Y" }}).
+                    </p>
+                    <hr>
+                    <form method="post">
+                        {% csrf_token %}
+
+                        <label class="form-label">{{ form.rating.label }}</label>
+                        <div class="star-rating">
+                            {% for radio in form.rating %}
+                                {{ radio.tag }}
+                                <label for="{{ radio.id_for_label }}">★</label>
+                            {% endfor %}
+                        </div>
+                        {% bootstrap_field form.comment %}
+
+                        <div class="d-grid mt-4">
+                            <button type="submit" class="btn btn-primary">Отправить отзыв</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

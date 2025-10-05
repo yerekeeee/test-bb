@@ -1,0 +1,93 @@
+{% extends '../base.html' %}
+{% load django_bootstrap5 %}
+
+{% block title %}Все записи - BeautyBook{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h1 class="display-6 mb-4">Все записи</h1>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3 align-items-end">
+                <div class="col-md-4">
+                    <label for="master" class="form-label">Мастер</label>
+                    <select name="master" id="master" class="form-select">
+                        <option value="">Все мастера</option>
+                        {% for master in masters %}
+                            <option value="{{ master.id }}" {% if master.id == selected_master %}selected{% endif %}>
+                                {{ master.user.get_full_name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="start_date" class="form-label">С даты</label>
+                    <input type="date" name="start_date" id="start_date" value="{{ start_date|default:'' }}" class="form-control">
+                </div>
+                <div class="col-md-3">
+                    <label for="end_date" class="form-label">По дату</label>
+                    <input type="date" name="end_date" id="end_date" value="{{ end_date|default:'' }}" class="form-control">
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">Фильтр</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Клиент</th>
+                            <th>Мастер</th>
+                            <th>Услуги</th>
+                            <th>Дата и время</th>
+                            <th>Сумма</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for app in page_obj %}
+                        <tr>
+                            <td>{{ app.client.get_full_name }}</td>
+                            <td>{{ app.master.user.get_full_name }}</td>
+                            <td>
+                                <ul class="list-unstyled mb-0">
+                                    {% for service in app.services.all %}
+                                        <li>
+                                            {{ service.name }}
+                                            <small class="text-muted">({{ service.price|floatformat:"0" }} тг.)</small>
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            </td>
+                            <td>{{ app.start_time|date:"d.m.Y H:i" }}</td>
+                            <td>{{ app.total_price|floatformat:"0" }} тг.</td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="5" class="text-center">Записи не найдены.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            {% if page_obj.has_other_pages %}
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center mt-4">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}&{{ request.GET.urlencode | cut:'page=' | cut:page_obj.previous_page_number }}">Назад</a></li>
+                    {% endif %}
+                    <li class="page-item active"><a class="page-link" href="#">{{ page_obj.number }}</a></li>
+                    {% if page_obj.has_next %}
+                        <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}&{{ request.GET.urlencode | cut:'page=' | cut:page_obj.next_page_number }}">Вперед</a></li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

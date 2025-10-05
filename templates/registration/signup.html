@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% load django_bootstrap5 %}
+{% load static %}
+
+{% block title %}Регистрация - BeautyBook{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center py-5">
+    <div class="col-md-6 col-lg-5 col-xl-4">
+        <div class="card shadow-sm">
+            <div class="card-body p-4 p-md-5">
+                <div class="text-center mb-4">
+                    <img src="{% static 'images/logo.svg' %}" alt="BeautyBook Logo" width="40" height="40" class="mb-3">
+                    <h2 class="card-title">Создание аккаунта</h2>
+                </div>
+
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    {% bootstrap_form form %}
+
+                    <div class="d-grid mt-4">
+                        <button type="submit" class="btn btn-primary btn-lg">Зарегистрироваться</button>
+                    </div>
+                </form>
+
+                <div class="text-center mt-4">
+                    <p class="mb-0 text-muted">Уже есть аккаунт? <a href="{% url 'login' %}">Войти</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://unpkg.com/imask"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const phoneInput = document.getElementById('phone-mask-signup');
+    if (phoneInput) {
+        const mask = IMask(phoneInput, { mask: '+{7} (000) 000-00-00' });
+    }
+});
+</script>
+{% endblock %}

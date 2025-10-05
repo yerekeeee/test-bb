@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% load django_bootstrap5 %}
+
+{% block title %}Выбор услуги - BeautyBook{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="text-center mb-4">
+        <h1 class="display-6">Наши услуги</h1>
+        <p class="lead text-muted">Выберите интересующую вас услугу, чтобы перейти к выбору мастера.</p>
+    </div>
+
+    <div class="list-group shadow-sm">
+        {% for service in services %}
+            <a href="{% url 'booking:master_list' service.id %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                <div>
+                    <h5 class="mb-1">{{ service.name }}</h5>
+                    <small>{{ service.description|truncatewords:15 }}</small>
+                </div>
+                <span class="badge bg-primary rounded-pill fs-6">{{ service.price|floatformat:"0" }} тг.</span>
+            </a>
+        {% empty %}
+            <div class="list-group-item">
+                <p class="mb-1">На данный момент услуги не добавлены.</p>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

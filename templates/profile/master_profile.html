@@ -1,0 +1,74 @@
+{% extends '../base.html' %}
+{% load django_bootstrap5 %}
+
+{% block title %}Кабинет мастера - BeautyBook{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="display-6">Кабинет мастера</h1>
+        <span class="badge bg-success fs-6">Профиль активен</span>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-body text-center">
+                    <img src="{{ user.masterprofile.photo.url }}" class="rounded-circle mb-3" alt="{{ user.get_full_name }}" width="120" height="120" style="object-fit: cover;">
+                    <h4 class="card-title">{{ user.get_full_name }}</h4>
+                    <p class="text-muted">@{{ user.username }}</p>
+                    <hr>
+                    <h5 class="card-title">Рейтинг</h5>
+                    <p class="fs-4 text-warning mb-0">{{ user.masterprofile.average_rating|floatformat:"1" }} ★</p>
+                    <small class="text-muted">на основе {{ user.masterprofile.review_count }} отзывов</small>
+                    <div class="d-grid mt-3">
+                        <a href="{% url 'booking:master_reviews' user.masterprofile.id %}" class="btn btn-outline-primary">Посмотреть мои отзывы</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            <div class="card shadow-sm h-100">
+                <div class="card-header">
+                    <h4 class="mb-0">Предстоящие записи</h4>
+                </div>
+                <div class="card-body">
+                    {% if upcoming_appointments %}
+                        <div class="table-responsive">
+                            <table class="table table-striped align-middle">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Дата и время</th>
+                                        <th>Клиент</th>
+                                        <th>Телефон</th>
+                                        <th>Услуги</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for app in upcoming_appointments %}
+                                    <tr>
+                                        <td><strong>{{ app.start_time|date:"d.m.Y, H:i" }}</strong></td>
+                                        <td>{{ app.client_display_name }}</td>
+                                        <td>{{ app.client_display_phone }}</td>
+                                        <td>
+                                            <ul class="list-unstyled mb-0">
+                                            {% for service in app.services.all %}
+                                                <li>{{ service.name }}</li>
+                                            {% endfor %}
+                                            </ul>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted mb-0">У вас пока нет предстоящих записей.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

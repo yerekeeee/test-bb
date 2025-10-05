@@ -1,0 +1,24 @@
+services:
+  # 1. Веб-сервис (Daphne для Django)
+  - type: web
+    name: beautybook-web
+    env: python
+    buildCommand: "./build.sh"
+    startCommand: "daphne -b 0.0.0.0 -p $PORT beautybook.asgi:application"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.13.2 # Укажите вашу версию Python
+      - key: SECRET_KEY
+        generateValue: true # Render сгенерирует секретный ключ
+      - key: WEB_CONCURRENCY
+        value: 4
+
+  # 2. База данных PostgreSQL
+  - type: psql
+    name: beautybook-db
+    ipAllowList: [] # Разрешить доступ со всех IP-адресов внутри Render
+
+  # 3. Сервис Redis
+  - type: redis
+    name: beautybook-redis
+    ipAllowList: []

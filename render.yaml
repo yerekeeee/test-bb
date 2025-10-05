@@ -14,7 +14,7 @@ services:
         value: 4
 
   # 2. База данных PostgreSQL
-  - type: psql
+  - type: postgres
     name: beautybook-db
     ipAllowList: [] # Разрешить доступ со всех IP-адресов внутри Render
 
